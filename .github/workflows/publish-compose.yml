@@ -1,0 +1,149 @@
+name: Publish with Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  create-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.TOKEN_DEPLOY }}
+
+      - name: Build and push main application image
+        run: |
+          docker build . -t ghcr.io/gtichess/ai-lac-05:latest
+          docker push ghcr.io/gtichess/ai-lac-05:latest
+
+  deploy-with-compose:
+    needs: create-docker-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
+
+      - name: Deploy to Server via SSH
+        run: |
+          ssh -i private_key.pem \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+
+          # Navigate to project directory
+          cd /home/ai-lac-05
+
+          # Login to GitHub Container Registry
+          docker login ghcr.io -u gtichess -p ${{ secrets.TOKEN_DEPLOY }}
+
+          # Pull the latest images
+          docker pull ghcr.io/gtichess/ai-lac-05:latest
+          docker pull ghcr.io/gtichess/app-nginx:latest || echo "Failed to pull app-nginx:latest, using existing"
+
+          # Stop existing services
+          docker compose down || true
+
+          # Create docker-compose.yml
+          cat > docker-compose.yml << 'COMPOSE_EOF'
+          services:
+            ai-lac-05:
+              image: ghcr.io/gtichess/ai-lac-05:latest
+              container_name: ai-lac-05
+              env_file:
+                - .env
+              networks:
+                - ai-lac-05-network
+              restart: unless-stopped
+              mem_limit: 256m
+              memswap_limit: 512m
+              mem_reservation: 128m
+            
+            nginx:
+              image: ghcr.io/gtichess/app-nginx:latest
+              container_name: app-nginx-ai-lac-05
+              ports:
+                - "3001:80"
+              volumes:
+                - ./nginx.conf:/etc/nginx/nginx.conf
+              networks:
+                - ai-lac-05-network
+              restart: unless-stopped
+              depends_on:
+                - ai-lac-05
+
+          networks:
+            ai-lac-05-network:
+              name: ai-lac-05-network
+              driver: bridge
+          COMPOSE_EOF
+
+          # Create nginx.conf
+          cat > nginx.conf << 'NGINX_EOF'
+          events {
+              worker_connections 1024;
+          }
+
+          http {
+              upstream ai-lac-05-backend {
+                  server ai-lac-05:3020;
+              }
+              
+              server {
+                  listen 80;
+                  server_name localhost;
+                  
+                  # Normalize /lac redirect
+                  location = /lac {
+                    return 301 /lac/;
+                  }
+                  
+                  # Proxy /lac to the node app root
+                  location /lac/ {
+                      proxy_pass http://ai-lac-05-backend/;
+                      proxy_http_version 1.1;
+                      proxy_set_header Upgrade $http_upgrade;
+                      proxy_set_header Connection 'upgrade';
+                      proxy_set_header Host $host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $scheme;
+                      proxy_cache_bypass $http_upgrade;
+            
+                      # Rewrite the path to remove /1/ prefix for Node app
+                      #rewrite ^/1/(.*)$ /$1 break;
+
+                  }
+
+                  location /health {
+                      proxy_pass http://ai-lac-05-backend/v1/health;
+                  }
+
+                  location / {
+                      return 404;
+                  }
+             }
+          }
+          NGINX_EOF
+
+          # Start services
+          docker compose up -d
+
+          # Show running containers
+          docker ps
+          EOF
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f private_key.pem

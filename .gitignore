@@ -1,0 +1,12 @@
+dist/*
+node_modules
+.env
+.envrailway_LAC
+.envrailway_DEMO
+
+*_sessions
+*tokens
+.wwebjs*
+
+*.log
+*qr.png
