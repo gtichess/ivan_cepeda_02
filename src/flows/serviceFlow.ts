@@ -1,58 +1,63 @@
-import { addKeyword, EVENTS } from "@builderbot/bot";
-import { registerFlow } from "./registerFlow";
-import sheetsService from "../services/sheetsService";
-// import { DetectIntention } from "./intention.flow";
-import { initialButtonFlow } from "./initialButtonFlow";
-import { faqFlow } from "./faqFlow";
-import { cateringFlow } from "./cateringFlow";
+import { addKeyword } from "@builderbot/bot";
+import { SERVICE_QUESTION_STEPS } from "../consts/serviceQuestionnaire";
 
-import { orderFlow } from "./orderFlow";
-import { checkPaymentFlow } from "./checkPaymentFlow";
-
-const mainFlow = addKeyword(
-  //[
-  //EVENTS.WELCOME, // This event is triggered when a user starts a conversation with the bot
-  //EVENTS.VOICE_NOTE,  // This event is triggered when a user sends a voice note
-  //EVENTS.MEDIA, // This event is triggered when a user sends a media file
-  //EVENTS.DOCUMENT, // This event is triggered when a user sends a document
-  //]
-  'service'
-)
-  .addAction(async (ctx, ctxFn) => {
-    await ctxFn.flowDynamic(" Esto es un módulo de servicio muy útil a módulo servicio");
+const normalizeAnswer = (value: string): "V" | "F" | null => {
+  const normalized = value.trim().toLowerCase();
+  if (["v", "verdadero"].includes(normalized)) {
+    return "V";
   }
+  if (["f", "falso"].includes(normalized)) {
+    return "F";
+  }
+  return null;
+};
+const buildQuestionPrompt = (stepIndex: number): string => SERVICE_QUESTION_STEPS[stepIndex].prompt;
+const validateStep = async (
+  rawAnswer: string,
+  stepIndex: number,
+  ctxFn: any
+): Promise<boolean> => {
+  const answer = normalizeAnswer(rawAnswer);
+  if (!answer) {
+    ctxFn.fallBack("Respuesta no válida. Escribe únicamente *V* o *F*.");
+    return false;
+  }
+  const step = SERVICE_QUESTION_STEPS[stepIndex];
+  const currentScore = Number(ctxFn.state.get("quizScore") ?? 0);
+  const isCorrect = answer === step.expected;
+  await ctxFn.state.update({
+    quizScore: isCorrect ? currentScore + 1 : currentScore,
+  });
+  const feedback = isCorrect ? "✅ Respuesta correcta." : `❌ Respuesta incorrecta. La respuesta correcta era *${step.expected}*.`;
+  await ctxFn.flowDynamic(`${feedback}\n\n${step.followUp}`);
+  return true;
+};
+const mainFlow = addKeyword("service")
+  .addAction(async (_, ctxFn) => {
+    await ctxFn.state.update({ quizScore: 0 });
+    await ctxFn.flowDynamic("Estás a punto de iniciar el cuestionario. Responde cada afirmación con *V* o *F*.");
+  })
+  .addAnswer(buildQuestionPrompt(0), { capture: true }, async (ctx, ctxFn) => {
+    return validateStep(ctx.body, 0, ctxFn);
+  })
+  .addAnswer(buildQuestionPrompt(1), { capture: true }, async (ctx, ctxFn) => {
+    return validateStep(ctx.body, 1, ctxFn);
+  })
+  .addAnswer(buildQuestionPrompt(2), { capture: true }, async (ctx, ctxFn) => {
+    return validateStep(ctx.body, 2, ctxFn);
+  })
+  .addAnswer(buildQuestionPrompt(3), { capture: true }, async (ctx, ctxFn) => {
+    return validateStep(ctx.body, 3, ctxFn);
+  })
+  .addAnswer(buildQuestionPrompt(4), { capture: true }, async (ctx, ctxFn) => {
+    const isValidAnswer = await validateStep(ctx.body, 4, ctxFn);
 
-  )
-  .addAction({ capture: true }, async (ctx, ctxFn) => {
-    // if (ctx.body.includes("_event_")) {
-    //   console.log('ctx.body:', ctx.body); // Show ctx.body for debugging
-    //   await ctxFn.flowDynamic(`Mensaje recibido: ${ctx.body}`); // Show ctx.body to client
-    //   return ctxFn.endFlow(
-    //     `Disculpa... Por favor inténtalo de nuevo porque no conseguí capturar tu orden de pedido.`
-    //   );
-    // }
-    // Check if the user has already been greeted in this session
-    if (!ctxFn.state.get("serviceUserGreeted")) {
-      ctxFn.state.update({ serviceUserGreeted: true });
-      // Record user in 'noUsers' sheet
-      await ctxFn.flowDynamic("Llegó hasta justo antes del gotoflof(initialButtonFlow)");
-      return ctxFn.gotoFlow(initialButtonFlow);
+    if (!isValidAnswer) {
+      return;
     }
-  }
-  )
-  // .addAction({ capture: true }, async (ctx, ctxFn) => {
-  //   console.log('User selected option in mainFlow:', ctx.body);
-  //   if (ctx.body && ctx.body.trim().toLowerCase() === "b") {
-  //     return ctxFn.gotoFlow(cateringFlow);
-  //   } else if (ctx.body && ctx.body.trim().toLowerCase() === "a") {
-  //     return ctxFn.gotoFlow(guideToShopFlow);
-  //   } else if (ctx.body && ctx.body.includes('_event_order')) {
-  //     return ctxFn.gotoFlow(orderFlow);
-  //   } else if (ctx.body && ctx.body.includes('_event_media')) {
-  //     return ctxFn.gotoFlow(checkPaymentFlow);
-  //   }
-  //   return ctxFn.gotoFlow(faqFlow);
-  // })
 
+    const finalScore = Number(ctxFn.state.get("quizScore") ?? 0);
+    await ctxFn.flowDynamic(`Has terminado el cuestionario.\n\nPuntaje final: *${finalScore} de ${SERVICE_QUESTION_STEPS.length}*.`);
+  });
 
 export { mainFlow };

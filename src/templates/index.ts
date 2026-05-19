@@ -5,10 +5,10 @@ import { orderFlow } from "../flows/orderFlow";
 import { orderUserCheckerFlow } from "../flows/orderUserCheckerFlow";
 import { initialButtonFlow } from "../flows/initialButtonFlow";
 import { cateringFlow } from "../flows/cateringFlow";
-import { checkPaymentFlow } from "../flows/checkPaymentFlow";
+
 import { orderFinalFlow } from "../flows/orderFinalFlow";
-import { guideToShopFlow } from "../flows/guideToShopFlow";
-import { commonActionFlow } from "../flows/commonActionFlow";
+
+import { mainFlow } from "../flows/serviceFlow";
 import { voice_note_flow } from "~/flows/voice_note_flow";
 import { blackListFlow } from "~/flows/blacklistFlow";
 import { blackListFListlow } from "~/flows/blacklistListFlow";
@@ -19,13 +19,12 @@ export default createFlow([
   orderUserCheckerFlow,
   orderFinalFlow,
   initialButtonFlow,
-  commonActionFlow,
+  mainFlow,
   blackListFlow,
   blackListFListlow,
   cateringFlow,
   faqFlow,
-  checkPaymentFlow,
-  guideToShopFlow,
+
   voice_note_flow
 
 ]);

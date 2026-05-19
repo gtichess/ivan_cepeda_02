@@ -1,0 +1,6 @@
+allowBuilds:
+  baileys: false
+  esbuild: false
+  onnxruntime-node: false
+  protobufjs: false
+  sharp: false
