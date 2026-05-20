@@ -7,9 +7,13 @@ ${INITIAL_BUTTON_MENU}`;
 const buildNamePrefix = (pushName?: string) => (pushName ? `${pushName}, ` : "");
 
 export const getInitialButtonNewUserMessage = (pushName?: string) =>
-	`${buildNamePrefix(pushName)}, bienvenido a Iván Cepeda _en primera vuelta_ 👋.`.trim();
+	`${buildNamePrefix(pushName)}🔥 ¿Te le mides al juego? 🎮
+
+Este espacio es para desmentir mitos, aclarar dudas y hablar sin filtros sobre lo que se dice de la campaña de Iván Cepeda 💬⚡`.trim();
 
 export const getInitialButtonReturningMessage = (pushName?: string) =>
-	`${buildNamePrefix(pushName)}, bienvenido de nuevo a Iván Cepeda _en primera vuelta_ 👋.
+	`${buildNamePrefix(pushName)}🔥 ¿Te le mides al juego? 🎯
+
+Este espacio es para desmentir mitos, aclarar dudas y hablar sin filtros sobre lo que se dice de la campaña de Iván Cepeda 💬⚡
 
 ${INITIAL_BUTTON_MENU}`.trim();

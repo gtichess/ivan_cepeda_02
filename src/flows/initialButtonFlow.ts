@@ -1,5 +1,5 @@
 import { addKeyword, EVENTS } from "@builderbot/bot";
-import { mainFlow } from "./serviceFlow";
+import { gameFlow } from "./gameFlow";
 import { cateringFlow } from "./cateringFlow";
 import sheetsService from "../services/sheetsService";
 import { getDeliveryDate } from "../utils/deliveryDate";
@@ -48,7 +48,7 @@ const initialButtonFlow = addKeyword<BaileysProvider>([EVENTS.WELCOME, EVENTS.AC
         const phone = ctxFn.state.get("phone");
         const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
         if (ctx.body && ctx.body.trim().toLowerCase() === "juego") {
-            return ctxFn.gotoFlow(mainFlow);
+            return ctxFn.gotoFlow(gameFlow);
         } else if (ctx.body && ctx.body.includes('_event_media')) {
             return ctxFn.gotoFlow(checkPaymentFlow);
         } else if (ctx.body && ctx.body.includes('_event_document')) {

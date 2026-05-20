@@ -1,4 +1,4 @@
-import { addKeyword } from "@builderbot/bot";
+import { addKeyword, EVENTS } from "@builderbot/bot";
 import { SERVICE_QUESTION_STEPS } from "../consts/serviceQuestionnaire";
 import { initialButtonFlow } from "./initialButtonFlow";
 import { checkPaymentFlow } from "./checkPaymentFlow";
@@ -36,18 +36,16 @@ const validateStep = async (
   await ctxFn.flowDynamic(`${feedback}\n\n${step.followUp}`);
   return true;
 };
-const mainFlow = addKeyword("service")
-  .addAnswer('...')
-  // .addAction({ capture: false, delay: 0 }, async (ctx, ctxFn) => {
-  //   const phone = ctxFn.state.get("phone");
-  //   const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
-  //   await ctxFn.provider.sendText(phoneWithWhatsApp, "...Cargando el cuestionario de Iván Cepeda... 📋");
-  // })
-  // .addAction({ capture: false, delay: 0 }, async (ctx, ctxFn) => {
-  //   const phone = ctxFn.state.get("phone");
-  //   const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
-  //   await ctxFn.provider.sendText(phoneWithWhatsApp, "¡Bienvenido al cuestionario de Iván Cepeda! Responde las siguientes afirmaciones con *V* (verdadero) o *F* (falso). Comencemos:");
-  // })
+const gameFlow = addKeyword(EVENTS.ACTION)
+  .addAnswer(`¡Arrancamos!
+
+Vamos a jugar “Falso o Verdadero” 🔥
+Te iremos enviando diferentes afirmaciones sobre la campaña y tú deberás responder si crees que son:
+
+👉 F = Falso
+👉 V = Verdadero
+
+Después de cada pregunta, responde únicamente con la letra F o V 💬⚡`)
   .addAnswer(buildQuestionPrompt(0), { capture: true, delay: 1000 }, async (ctx, ctxFn) => {
     return validateStep(ctx.body, 0, ctxFn);
   })
@@ -68,7 +66,11 @@ const mainFlow = addKeyword("service")
     }
 
     const finalScore = Number(ctxFn.state.get("quizScore") ?? 0);
-    await ctxFn.flowDynamic(`Has terminado el cuestionario.\n\nPuntaje final: *${finalScore} de ${SERVICE_QUESTION_STEPS.length}*.\n\nGracias por participar. Selecciona una opción:\n*0* - Volver al menú principal\n*1* - Hacer pregunta libre sobre Iván (chatGPT)\n*'juego'* - Reiniciar el cuestionario`);
+    await ctxFn.flowDynamic(`Has terminado el cuestionario.\n\nPuntaje final: *${finalScore} de ${SERVICE_QUESTION_STEPS.length}*.`);
+    const phone = ctxFn.state.get("phone");
+    const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+    await ctxFn.provider.sendImage(phoneWithWhatsApp, "./public/assets/1.jpeg", "¡Gracias por jugar! Aquí tienes un regalito 🎁");
+    await ctxFn.flowDynamic(`Selecciona una opción:\n*0* - Volver al menú principal\n*1* - Ir a preguntas por tema sobre Iván\n*juego* - Reiniciar el cuestionario`);
   })
   .addAction({ capture: true }, async (ctx, ctxFn) => {
     if (ctx.body && ctx.body.trim().toLowerCase() === "0") {
@@ -76,7 +78,7 @@ const mainFlow = addKeyword("service")
     } else if (ctx.body && ctx.body.trim().toLowerCase() === '1') {
       return ctxFn.gotoFlow(faqFlow);
     } else if (ctx.body && ctx.body.trim().toLowerCase() === "juego") {
-      return ctxFn.gotoFlow(mainFlow);
+      return ctxFn.gotoFlow(gameFlow);
     } else if (ctx.body && ctx.body.includes('_event_media')) {
       return ctxFn.gotoFlow(checkPaymentFlow);
     } else if (ctx.body && ctx.body.includes('_event_document')) {
@@ -89,4 +91,4 @@ const mainFlow = addKeyword("service")
   }
   )
 
-export { mainFlow };
+export { gameFlow };

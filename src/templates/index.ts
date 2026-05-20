@@ -8,7 +8,7 @@ import { cateringFlow } from "../flows/cateringFlow";
 
 import { orderFinalFlow } from "../flows/orderFinalFlow";
 
-import { mainFlow } from "../flows/serviceFlow";
+import { gameFlow } from "../flows/gameFlow";
 import { voice_note_flow } from "~/flows/voice_note_flow";
 import { blackListFlow } from "~/flows/blacklistFlow";
 import { blackListFListlow } from "~/flows/blacklistListFlow";
@@ -19,7 +19,7 @@ export default createFlow([
   orderUserCheckerFlow,
   orderFinalFlow,
   initialButtonFlow,
-  mainFlow,
+  gameFlow,
   blackListFlow,
   blackListFListlow,
   cateringFlow,

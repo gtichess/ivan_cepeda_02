@@ -1,0 +1,33 @@
+export const FAQ_CLOSING_INVITATION_MESSAGE = [
+  "📢 Antes de irte, queremos invitarte a seguir conectado e informado por nuestros canales oficiales y grupos de WhatsApp 🫱🏻‍🫲🏽📲",
+  "",
+  "🇨🇴🌸Buenas Noticias Gobierno Petro en tu WhatsApp ",
+  "https://chat.whatsapp.com/KSstYVGblL64SwmriNrfcL?mode=gi_t",
+  "",
+  "✊🏼👨🏻‍🦱Comunidad Nacional de Iván Cepeda en WhastApp",
+  "https://chat.whatsapp.com/F1to9Gnm0A8JWRnlx7ArNs?mode=gi_t",
+  "",
+  "Allí estaremos compartiendo información verificada, propuestas, agenda y todo lo relacionado con la campaña, sin cadenas falsas ni desinformación.",
+  "",
+  "🗳️ Recomendaciones importantes para el día de las elecciones:",
+  "",
+  "✅ Consulta con anticipación tu lugar de votación en la página oficial de la Registraduría.",
+  "✅ Sal a votar temprano para evitar filas y contratiempos.",
+  "✅ Lleva tu documento de identidad original.",
+  "✅ Verifica bien el tarjetón antes de marcar.",
+  "✅ Comparte información solo de fuentes oficiales.",
+  "✅ Invita a tu familia y amigos a votar de manera consciente e informada.",
+  "✅ Recuerda que cada voto cuenta y puede definir el futuro del país 🇨🇴",
+  "",
+  "🔗 Consulta aquí tu puesto de votación:",
+  "https://wsp.registraduria.gov.co/censo/consultar/",
+  "",
+  "Gracias por hacer parte de este espacio",
+].join("\n");
+
+export const FAQ_NAVIGATION_MESSAGE = [
+  "Selecciona una opción para continuar:",
+  "*0* - Volver al menú principal",
+  "*1* - Volver a elegir un tema",
+  "*juego* - Volver al juego",
+].join("\n");
