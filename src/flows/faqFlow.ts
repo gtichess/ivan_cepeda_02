@@ -7,8 +7,9 @@ import fs, { stat } from "fs";
 import { initialButtonFlow } from "./initialButtonFlow";
 import { getRealJid } from "~/utils/whatsapp-utils";
 import { orderFlow } from "./orderFlow";
-import { checkPaymentFlow } from "./checkPaymentFlow";
+
 import { voice_note_flow } from "./voice_note_flow";
+import { checkPaymentFlow } from "./checkPaymentFlow";
 
 const pathPrompt = path.join(
   process.cwd(),
@@ -20,6 +21,11 @@ const prompt = fs.readFileSync(pathPrompt, "utf8");
 
 export const faqFlow = addKeyword([EVENTS.ACTION])
   .addAction(async (ctx, ctxFn) => {
+    const phone = getRealJid(ctx);
+    const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+    await ctxFn.provider.sendText(phoneWithWhatsApp, `Puedes hacerme cualquier pregunta sobre Iván Cepeda, su campaña, propuestas, historia, o cualquier tema relacionado. Estoy aquí para ayudarte a conocer más sobre él y su visión para Colombia.`);
+  })
+  .addAction({ capture: true }, async (ctx, ctxFn) => {
     const phone = getRealJid(ctx);
     const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
     await ctxFn.provider.sendText(phoneWithWhatsApp, `_El asistente chatbot va a responder a continuación_`);
@@ -58,7 +64,7 @@ export const faqFlow = addKeyword([EVENTS.ACTION])
     } else if (ctx.body && ctx.body.includes('_event_voice_note')) {
       return ctxFn.gotoFlow(voice_note_flow);
     } else {
-      return ctxFn.gotoFlow(faqFlow);
+      return ctxFn.gotoFlow(initialButtonFlow);
     }
   }
   )

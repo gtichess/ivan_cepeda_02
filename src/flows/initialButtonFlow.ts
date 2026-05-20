@@ -11,9 +11,11 @@ import { blackListFListlow } from "./blacklistListFlow";
 import { blackListFlow } from "./blacklistFlow";
 import { voice_note_flow } from "./voice_note_flow";
 import {
+    getInitialButtonNewUserMessage,
     getInitialButtonReturningMessage,
     INITIAL_BUTTON_WELCOME_MESSAGE,
 } from "../consts/initialButtonMessages";
+import { checkPaymentFlow } from "./checkPaymentFlow";
 
 const today = new Date();
 const dayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
@@ -35,6 +37,7 @@ const initialButtonFlow = addKeyword<BaileysProvider>([EVENTS.WELCOME, EVENTS.AC
         console.log("Calculated delivery date (-5h):", deliveryDate);
         if (!isUser) {
             console.log('Registering new user:', phone, ctx.pushName);
+            await ctxFn.provider.sendText(phoneWithWhatsApp, getInitialButtonNewUserMessage(ctx.pushName));
             await ctxFn.provider.sendText(phoneWithWhatsApp, INITIAL_BUTTON_WELCOME_MESSAGE);
             await sheetsService.createUser(currentUser, ctx.pushName);
         } else {
@@ -46,6 +49,10 @@ const initialButtonFlow = addKeyword<BaileysProvider>([EVENTS.WELCOME, EVENTS.AC
         const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
         if (ctx.body && ctx.body.trim().toLowerCase() === "juego") {
             return ctxFn.gotoFlow(mainFlow);
+        } else if (ctx.body && ctx.body.includes('_event_media')) {
+            return ctxFn.gotoFlow(checkPaymentFlow);
+        } else if (ctx.body && ctx.body.includes('_event_document')) {
+            return ctxFn.gotoFlow(checkPaymentFlow);
         } else if (ctx.body && ctx.body.includes('_event_order')) {
             return ctxFn.gotoFlow(orderFlow);
         } else if (ctx.body && ctx.body.includes('_event_voice_note')) {

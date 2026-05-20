@@ -1,5 +1,9 @@
 import { addKeyword } from "@builderbot/bot";
 import { SERVICE_QUESTION_STEPS } from "../consts/serviceQuestionnaire";
+import { initialButtonFlow } from "./initialButtonFlow";
+import { checkPaymentFlow } from "./checkPaymentFlow";
+import { voice_note_flow } from "./voice_note_flow";
+import { faqFlow } from "./faqFlow";
 
 const normalizeAnswer = (value: string): "V" | "F" | null => {
   const normalized = value.trim().toLowerCase();
@@ -33,11 +37,18 @@ const validateStep = async (
   return true;
 };
 const mainFlow = addKeyword("service")
-  .addAction(async (_, ctxFn) => {
-    await ctxFn.state.update({ quizScore: 0 });
-    await ctxFn.flowDynamic("Estás a punto de iniciar el cuestionario. Responde cada afirmación con *V* o *F*.");
-  })
-  .addAnswer(buildQuestionPrompt(0), { capture: true }, async (ctx, ctxFn) => {
+  .addAnswer('...')
+  // .addAction({ capture: false, delay: 0 }, async (ctx, ctxFn) => {
+  //   const phone = ctxFn.state.get("phone");
+  //   const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+  //   await ctxFn.provider.sendText(phoneWithWhatsApp, "...Cargando el cuestionario de Iván Cepeda... 📋");
+  // })
+  // .addAction({ capture: false, delay: 0 }, async (ctx, ctxFn) => {
+  //   const phone = ctxFn.state.get("phone");
+  //   const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+  //   await ctxFn.provider.sendText(phoneWithWhatsApp, "¡Bienvenido al cuestionario de Iván Cepeda! Responde las siguientes afirmaciones con *V* (verdadero) o *F* (falso). Comencemos:");
+  // })
+  .addAnswer(buildQuestionPrompt(0), { capture: true, delay: 1000 }, async (ctx, ctxFn) => {
     return validateStep(ctx.body, 0, ctxFn);
   })
   .addAnswer(buildQuestionPrompt(1), { capture: true }, async (ctx, ctxFn) => {
@@ -57,7 +68,25 @@ const mainFlow = addKeyword("service")
     }
 
     const finalScore = Number(ctxFn.state.get("quizScore") ?? 0);
-    await ctxFn.flowDynamic(`Has terminado el cuestionario.\n\nPuntaje final: *${finalScore} de ${SERVICE_QUESTION_STEPS.length}*.`);
-  });
+    await ctxFn.flowDynamic(`Has terminado el cuestionario.\n\nPuntaje final: *${finalScore} de ${SERVICE_QUESTION_STEPS.length}*.\n\nGracias por participar. Selecciona una opción:\n*0* - Volver al menú principal\n*1* - Hacer pregunta libre sobre Iván (chatGPT)\n*'juego'* - Reiniciar el cuestionario`);
+  })
+  .addAction({ capture: true }, async (ctx, ctxFn) => {
+    if (ctx.body && ctx.body.trim().toLowerCase() === "0") {
+      return ctxFn.gotoFlow(initialButtonFlow);
+    } else if (ctx.body && ctx.body.trim().toLowerCase() === '1') {
+      return ctxFn.gotoFlow(faqFlow);
+    } else if (ctx.body && ctx.body.trim().toLowerCase() === "juego") {
+      return ctxFn.gotoFlow(mainFlow);
+    } else if (ctx.body && ctx.body.includes('_event_media')) {
+      return ctxFn.gotoFlow(checkPaymentFlow);
+    } else if (ctx.body && ctx.body.includes('_event_document')) {
+      return ctxFn.gotoFlow(checkPaymentFlow);
+    } else if (ctx.body && ctx.body.includes('_event_voice_note')) {
+      return ctxFn.gotoFlow(voice_note_flow);
+    } else {
+      return ctxFn.gotoFlow(initialButtonFlow);
+    }
+  }
+  )
 
 export { mainFlow };
