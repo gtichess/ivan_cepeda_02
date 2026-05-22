@@ -1,10 +1,7 @@
 import { addKeyword, EVENTS } from "@builderbot/bot";
 import { gameFlow } from "./gameFlow";
-import { cateringFlow } from "./cateringFlow";
 import sheetsService from "../services/sheetsService";
 import { getDeliveryDate } from "../utils/deliveryDate";
-import { orderFlow } from "./orderFlow";
-
 import { getRealJid } from "../utils/whatsapp-utils";
 import { BaileysProvider } from "@builderbot/provider-baileys";
 import { blackListFListlow } from "./blacklistListFlow";
@@ -53,8 +50,6 @@ const initialButtonFlow = addKeyword<BaileysProvider>([EVENTS.WELCOME, EVENTS.AC
             return ctxFn.gotoFlow(checkPaymentFlow);
         } else if (ctx.body && ctx.body.includes('_event_document')) {
             return ctxFn.gotoFlow(checkPaymentFlow);
-        } else if (ctx.body && ctx.body.includes('_event_order')) {
-            return ctxFn.gotoFlow(orderFlow);
         } else if (ctx.body && ctx.body.includes('_event_voice_note')) {
             return ctxFn.gotoFlow(voice_note_flow);
         } else if (ctx.body && ctx.body.trim().toLowerCase() === 'black') {

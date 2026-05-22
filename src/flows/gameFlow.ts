@@ -4,6 +4,15 @@ import { initialButtonFlow } from "./initialButtonFlow";
 import { checkPaymentFlow } from "./checkPaymentFlow";
 import { voice_note_flow } from "./voice_note_flow";
 import { faqFlow } from "./faqFlow";
+import {
+  buildGameFlowFinalScoreMessage,
+  GAME_FLOW_GIFT_IMAGE_CAPTION,
+  GAME_FLOW_INTRO_MESSAGE,
+  SHARED_NEXT_STEP_NAVIGATION_MESSAGE,
+} from "../consts/flowNavigationMessages";
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const normalizeAnswer = (value: string): "V" | "F" | null => {
   const normalized = value.trim().toLowerCase();
@@ -33,30 +42,63 @@ const validateStep = async (
     quizScore: isCorrect ? currentScore + 1 : currentScore,
   });
   const feedback = isCorrect ? "✅ Respuesta correcta." : `❌ Respuesta incorrecta. La respuesta correcta era *${step.expected}*.`;
-  await ctxFn.flowDynamic(`${feedback}\n\n${step.followUp}`);
+
+  const outputMessage = `${feedback}\n\n${step.followUp}`;
+  const phone = ctxFn.state.get("phone");
+  const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+  // await sleep(5000);
+  await ctxFn.provider.sendText(phoneWithWhatsApp, outputMessage);
+
+  // await ctxFn.flowDynamic(`${feedback}\n\n${step.followUp}`);
   return true;
 };
 const gameFlow = addKeyword(EVENTS.ACTION)
-  .addAnswer(`¡Arrancamos!
-
-Vamos a jugar “Falso o Verdadero” 🔥
-Te iremos enviando diferentes afirmaciones sobre la campaña y tú deberás responder si crees que son:
-
-👉 F = Falso
-👉 V = Verdadero
-
-Después de cada pregunta, responde únicamente con la letra F o V 💬⚡`)
-  .addAnswer(buildQuestionPrompt(0), { capture: true, delay: 1000 }, async (ctx, ctxFn) => {
+  .addAnswer(GAME_FLOW_INTRO_MESSAGE)
+  // .addAction({ capture: false }, async (ctx, ctxFn) => {
+  //   const phone = ctxFn.state.get("phone");
+  //   const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+  //   await sleep(5000);
+  //   await ctxFn.provider.sendText(phoneWithWhatsApp, '¡Empecemos con la primera pregunta! 🔥');
+  // })
+  .addAnswer(buildQuestionPrompt(0), { capture: true }, async (ctx, ctxFn) => {
     return validateStep(ctx.body, 0, ctxFn);
+  })
+  .addAction({ capture: false }, async (ctx, ctxFn) => {
+    const phone = ctxFn.state.get("phone");
+    const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+    await sleep(5000);
+    await ctxFn.provider.sendText(phoneWithWhatsApp, '¡Vamos con la siguiente pregunta! 🔥');
+    await sleep(5000);
   })
   .addAnswer(buildQuestionPrompt(1), { capture: true }, async (ctx, ctxFn) => {
     return validateStep(ctx.body, 1, ctxFn);
   })
+  .addAction({ capture: false }, async (ctx, ctxFn) => {
+    const phone = ctxFn.state.get("phone");
+    const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+    await sleep(5000);
+    await ctxFn.provider.sendText(phoneWithWhatsApp, '¡Vamos con la siguiente pregunta! 🔥');
+    await sleep(5000);
+  })
   .addAnswer(buildQuestionPrompt(2), { capture: true }, async (ctx, ctxFn) => {
     return validateStep(ctx.body, 2, ctxFn);
   })
+  .addAction({ capture: false }, async (ctx, ctxFn) => {
+    const phone = ctxFn.state.get("phone");
+    const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+    await sleep(5000);
+    await ctxFn.provider.sendText(phoneWithWhatsApp, '¡Vamos con la siguiente pregunta! 🔥');
+    await sleep(5000);
+  })
   .addAnswer(buildQuestionPrompt(3), { capture: true }, async (ctx, ctxFn) => {
     return validateStep(ctx.body, 3, ctxFn);
+  })
+  .addAction({ capture: false }, async (ctx, ctxFn) => {
+    const phone = ctxFn.state.get("phone");
+    const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
+    await sleep(5000);
+    await ctxFn.provider.sendText(phoneWithWhatsApp, '¡Vamos con la siguiente pregunta! 🔥');
+    await sleep(5000);
   })
   .addAnswer(buildQuestionPrompt(4), { capture: true }, async (ctx, ctxFn) => {
     const isValidAnswer = await validateStep(ctx.body, 4, ctxFn);
@@ -64,13 +106,19 @@ Después de cada pregunta, responde únicamente con la letra F o V 💬⚡`)
     if (!isValidAnswer) {
       return;
     }
-
-    const finalScore = Number(ctxFn.state.get("quizScore") ?? 0);
-    await ctxFn.flowDynamic(`Has terminado el cuestionario.\n\nPuntaje final: *${finalScore} de ${SERVICE_QUESTION_STEPS.length}*.`);
     const phone = ctxFn.state.get("phone");
     const phoneWithWhatsApp = `${phone}@s.whatsapp.net`;
-    await ctxFn.provider.sendImage(phoneWithWhatsApp, "./public/assets/1.jpeg", "¡Gracias por jugar! Aquí tienes un regalito 🎁");
-    await ctxFn.flowDynamic(`Selecciona una opción:\n*0* - Volver al menú principal\n*1* - Ir a preguntas por tema sobre Iván\n*juego* - Reiniciar el cuestionario`);
+    const finalScore = Number(ctxFn.state.get("quizScore") ?? 0);
+    await sleep(3000);
+    const finalScoreMessage = buildGameFlowFinalScoreMessage(finalScore, SERVICE_QUESTION_STEPS.length);
+    await sleep(3000);
+    await ctxFn.provider.sendText(phoneWithWhatsApp, finalScoreMessage);
+    // await sleep(3000);
+    // await ctxFn.provider.sendText(phoneWithWhatsApp, "¡Gracias por participar en el juego! 🎉");
+    await sleep(5000);
+    await ctxFn.provider.sendImage(phoneWithWhatsApp, "./public/assets/1.jpeg", GAME_FLOW_GIFT_IMAGE_CAPTION);
+    await sleep(5000);
+    await ctxFn.provider.sendText(phoneWithWhatsApp, SHARED_NEXT_STEP_NAVIGATION_MESSAGE)
   })
   .addAction({ capture: true }, async (ctx, ctxFn) => {
     if (ctx.body && ctx.body.trim().toLowerCase() === "0") {

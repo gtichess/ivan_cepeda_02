@@ -5,18 +5,22 @@ import path from "path";
 import fs from "fs";
 import { initialButtonFlow } from "./initialButtonFlow";
 import { getRealJid } from "~/utils/whatsapp-utils";
-import { orderFlow } from "./orderFlow";
+// import { orderFlow } from "./orderFlow";
 import { gameFlow } from "./gameFlow";
 import { voice_note_flow } from "./voice_note_flow";
 import { checkPaymentFlow } from "./checkPaymentFlow";
 import {
-	FAQ_TOPIC_SELECTOR_MESSAGE,
-	findFaqTopicBySelection,
+  FAQ_TOPIC_SELECTOR_MESSAGE,
+  findFaqTopicBySelection,
 } from "../consts/faqTopics";
 import {
   FAQ_CLOSING_INVITATION_MESSAGE,
   FAQ_NAVIGATION_MESSAGE,
 } from "../consts/faqNavigationMessages";
+import { SHARED_NEXT_STEP_NAVIGATION_MESSAGE } from "../consts/flowNavigationMessages";
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const promptDirectoryPath = path.join(
   process.cwd(),
@@ -34,10 +38,10 @@ const sendFaqNavigationWithClosingInvitation = async (
 };
 
 const buildTopicPrompt = (fileName: string): string => {
-	const topicPromptPath = path.join(promptDirectoryPath, fileName);
-	const topicPrompt = fs.readFileSync(topicPromptPath, "utf8");
+  const topicPromptPath = path.join(promptDirectoryPath, fileName);
+  const topicPrompt = fs.readFileSync(topicPromptPath, "utf8");
 
-	return `${prompt}\n\nDocumento base:\n${topicPrompt}`;
+  return `${prompt}\n\nDocumento base:\n${topicPrompt}`;
 };
 
 
@@ -94,7 +98,12 @@ export const faqFlow = addKeyword([EVENTS.ACTION])
       }
 
       await ctxFn.provider.sendText(phoneWithWhatsApp, response);
-      await sendFaqNavigationWithClosingInvitation(ctxFn, phoneWithWhatsApp);
+      await sleep(5000);
+      await ctxFn.provider.sendImage(phoneWithWhatsApp, "./public/assets/1.jpeg", "¡Gracias por jugar! Aquí tienes un regalito 🎁");
+      await sleep(5000);
+      await ctxFn.provider.sendText(phoneWithWhatsApp, SHARED_NEXT_STEP_NAVIGATION_MESSAGE)
+
+
     }
     catch (error) {
       console.error("Error during AI chat processing:", error);
@@ -110,8 +119,8 @@ export const faqFlow = addKeyword([EVENTS.ACTION])
       return ctxFn.gotoFlow(faqFlow);
     } else if (ctx.body && ctx.body.trim().toLowerCase() === "juego") {
       return ctxFn.gotoFlow(gameFlow);
-    } else if (ctx.body && ctx.body.includes('_event_order')) {
-      return ctxFn.gotoFlow(orderFlow);
+      // } else if (ctx.body && ctx.body.includes('_event_order')) {
+      //   return ctxFn.gotoFlow(orderFlow);
     } else if (ctx.body && ctx.body.includes('_event_media')) {
       return ctxFn.gotoFlow(checkPaymentFlow);
     } else if (ctx.body && ctx.body.includes('_event_document')) {
