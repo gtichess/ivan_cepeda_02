@@ -10,5 +10,3 @@ node_modules
 
 *.log
 *qr.png
-
-publish-compose.yml
