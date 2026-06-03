@@ -24,8 +24,8 @@ jobs:
 
       - name: Build and push main application image
         run: |
-          docker build . -t ghcr.io/gtichess/ai-lac-05:latest
-          docker push ghcr.io/gtichess/ai-lac-05:latest
+          docker build . -t ghcr.io/gtichess/ai-icepeda-02:latest
+          docker push ghcr.io/gtichess/ai-icepeda-02:latest
 
   deploy-with-compose:
     needs: create-docker-image
@@ -43,13 +43,13 @@ jobs:
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
 
           # Navigate to project directory
-          cd /home/ai-lac-05
+          cd /home/ai-icepeda-02
 
           # Login to GitHub Container Registry
           docker login ghcr.io -u gtichess -p ${{ secrets.TOKEN_DEPLOY }}
 
           # Pull the latest images
-          docker pull ghcr.io/gtichess/ai-lac-05:latest
+          docker pull ghcr.io/gtichess/ai-icepeda-02:latest
           docker pull ghcr.io/gtichess/app-nginx:latest || echo "Failed to pull app-nginx:latest, using existing"
 
           # Stop existing services
@@ -58,13 +58,13 @@ jobs:
           # Create docker-compose.yml
           cat > docker-compose.yml << 'COMPOSE_EOF'
           services:
-            ai-lac-05:
-              image: ghcr.io/gtichess/ai-lac-05:latest
-              container_name: ai-lac-05
+            ai-icepeda-02:
+              image: ghcr.io/gtichess/ai-icepeda-02:latest
+              container_name: ai-icepeda-02
               env_file:
                 - .env
               networks:
-                - ai-lac-05-network
+                - ai-icepeda-02-network
               restart: unless-stopped
               mem_limit: 256m
               memswap_limit: 512m
@@ -72,20 +72,20 @@ jobs:
             
             nginx:
               image: ghcr.io/gtichess/app-nginx:latest
-              container_name: app-nginx-ai-lac-05
+              container_name: app-nginx-ai-icepeda-02
               ports:
-                - "3001:80"
+                - "3003:80"
               volumes:
                 - ./nginx.conf:/etc/nginx/nginx.conf
               networks:
-                - ai-lac-05-network
+                - ai-icepeda-02-network
               restart: unless-stopped
               depends_on:
-                - ai-lac-05
+                - ai-icepeda-02
 
           networks:
-            ai-lac-05-network:
-              name: ai-lac-05-network
+            ai-icepeda-02-network:
+              name: ai-icepeda-02-network
               driver: bridge
           COMPOSE_EOF
 
@@ -96,22 +96,22 @@ jobs:
           }
 
           http {
-              upstream ai-lac-05-backend {
-                  server ai-lac-05:3020;
+              upstream ai-icepeda-02-backend {
+                  server ai-icepeda-02:3020;
               }
               
               server {
                   listen 80;
                   server_name localhost;
                   
-                  # Normalize /lac redirect
-                  location = /lac {
-                    return 301 /lac/;
+                  # Normalize /icepeda redirect
+                  location = /icepeda {
+                    return 301 /icepeda/;
                   }
                   
-                  # Proxy /lac to the node app root
-                  location /lac/ {
-                      proxy_pass http://ai-lac-05-backend/;
+                  # Proxy /icepeda to the node app root
+                  location /icepeda/ {
+                      proxy_pass http://ai-icepeda-02-backend/;
                       proxy_http_version 1.1;
                       proxy_set_header Upgrade $http_upgrade;
                       proxy_set_header Connection 'upgrade';
@@ -127,7 +127,7 @@ jobs:
                   }
 
                   location /health {
-                      proxy_pass http://ai-lac-05-backend/v1/health;
+                      proxy_pass http://ai-icepeda-02-backend/v1/health;
                   }
 
                   location / {
