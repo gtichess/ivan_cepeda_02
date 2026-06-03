@@ -1,4 +1,4 @@
-export const INITIAL_BUTTON_MENU = "Para continuar, escribe la palabra 'juego' 🎮.";
+export const INITIAL_BUTTON_MENU = "Para continuar, elige una opción:\n• Escribe *juego* 🎮 para participar en el juego\n• Escribe *kit* 📦 para recibir el kit de campaña";
 
 export const INITIAL_BUTTON_WELCOME_MESSAGE = `Al continuar, aceptas el uso adecuado y responsable de tus datos para avanzar en este proyecto de integración política 🤝.
 

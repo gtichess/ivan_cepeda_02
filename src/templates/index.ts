@@ -5,6 +5,7 @@ import { gameFlow } from "../flows/gameFlow";
 import { voice_note_flow } from "~/flows/voice_note_flow";
 import { blackListFlow } from "~/flows/blacklistFlow";
 import { blackListFListlow } from "~/flows/blacklistListFlow";
+import { kitFlow } from "~/flows/kitFlow";
 
 export default createFlow([
   initialButtonFlow,
@@ -12,6 +13,7 @@ export default createFlow([
   blackListFlow,
   blackListFListlow,
   faqFlow,
-  voice_note_flow
+  voice_note_flow,
+  kitFlow
 
 ]);

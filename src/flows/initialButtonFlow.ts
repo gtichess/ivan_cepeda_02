@@ -7,6 +7,7 @@ import { BaileysProvider } from "@builderbot/provider-baileys";
 import { blackListFListlow } from "./blacklistListFlow";
 import { blackListFlow } from "./blacklistFlow";
 import { voice_note_flow } from "./voice_note_flow";
+import { kitFlow } from "./kitFlow";
 import {
     getInitialButtonNewUserMessage,
     getInitialButtonReturningMessage,
@@ -52,6 +53,8 @@ const initialButtonFlow = addKeyword<BaileysProvider>([EVENTS.WELCOME, EVENTS.AC
             return ctxFn.gotoFlow(checkPaymentFlow);
         } else if (ctx.body && ctx.body.includes('_event_voice_note')) {
             return ctxFn.gotoFlow(voice_note_flow);
+        } else if (ctx.body && ctx.body.trim().toLowerCase() === 'kit') {
+            return ctxFn.gotoFlow(kitFlow);
         } else if (ctx.body && ctx.body.trim().toLowerCase() === 'black') {
             return ctxFn.gotoFlow(blackListFListlow);
         } else if (ctx.body && ctx.body.trim().toLocaleLowerCase() === 'mute') {

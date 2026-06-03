@@ -136,20 +136,6 @@ server {
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
     }
-
-    # Optional: health check for /lac/
-    location /lac/health {
-        # Allow more frequent health checks
-        limit_req zone=api burst=60 nodelay;
-        proxy_pass http://localhost:3001/health;
-    }
-
-    # NEW: health check for /wally/
-    location /wally/health {
-        limit_req zone=api burst=60 nodelay;
-        proxy_pass http://localhost:3002/health;
-    }
-
     # NEW: Proxy for /icepeda/ (ai-icepeda-02)
     location /icepeda/ {
         # Apply API rate limiting to this endpoint
@@ -170,7 +156,17 @@ server {
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
     }
-
+    # Optional: health check for /lac/
+    location /lac/health {
+        # Allow more frequent health checks
+        limit_req zone=api burst=60 nodelay;
+        proxy_pass http://localhost:3001/health;
+    }
+    # NEW: health check for /wally/
+    location /wally/health {
+        limit_req zone=api burst=60 nodelay;
+        proxy_pass http://localhost:3002/health;
+    }
     # NEW: health check for /icepeda/
     location /icepeda/health {
         limit_req zone=api burst=60 nodelay;
