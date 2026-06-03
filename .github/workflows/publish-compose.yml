@@ -39,7 +39,9 @@ jobs:
       - name: Deploy to Server via SSH
         run: |
           ssh -i private_key.pem \
+              -p ${{ secrets.SSH_PORT }} \
               -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=15 \
               ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
 
           # Navigate to project directory
