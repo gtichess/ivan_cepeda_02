@@ -53,10 +53,10 @@ jobs:
           docker pull ghcr.io/gtichess/app-nginx:latest || echo "Failed to pull app-nginx:latest, using existing"
 
           # Stop existing services
-          docker compose down || true
+            sudo docker compose down || true
 
           # Create docker-compose.yml
-          cat > docker-compose.yml << 'COMPOSE_EOF'
+            cat << 'COMPOSE_EOF' | sudo tee /home/ai-icepeda-02/docker-compose.yml > /dev/null
           services:
             ai-icepeda-02:
               image: ghcr.io/gtichess/ai-icepeda-02:latest
@@ -90,7 +90,7 @@ jobs:
           COMPOSE_EOF
 
           # Create nginx.conf
-          cat > nginx.conf << 'NGINX_EOF'
+          cat << 'NGINX_EOF' | sudo tee /home/ai-icepeda-02/nginx.conf > /dev/null
           events {
               worker_connections 1024;
           }
@@ -138,10 +138,10 @@ jobs:
           NGINX_EOF
 
           # Start services
-          docker compose up -d
+          sudo docker compose up -d
 
           # Show running containers
-          docker ps
+          sudo docker ps
           EOF
 
       - name: Cleanup SSH key
