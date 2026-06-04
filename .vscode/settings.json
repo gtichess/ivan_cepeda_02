@@ -3,5 +3,6 @@
         "tab.activeBackground": "#e0dfe4",
         "tab.inactiveBackground": "#fd019d34"
     },
-    "js/ts.tsdk.path": "node_modules\\typescript\\lib"
+    "js/ts.tsdk.path": "node_modules\\typescript\\lib",
+    "postman.settings.dotenv-detection-notification-visibility": false
 }
