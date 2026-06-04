@@ -11,3 +11,5 @@ node_modules
 *.log
 *qr.png
 rranzag.com
+
+bot_sessions
